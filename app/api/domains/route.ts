@@ -2,6 +2,7 @@ import { createDb } from "@/lib/db"
 import { domains } from "@/lib/schema"
 import { eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
+import { getZoneIdByName } from "@/lib/cloudflare-email"
 
 export const runtime = "edge"
 
@@ -13,11 +14,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const db = createDb()
-  const { name, type, parentDomain, cfZoneId } = await request.json() as {
+  const { name, type, parentDomain } = await request.json() as {
     name: string
     type: "native" | "subdomain"
     parentDomain?: string
-    cfZoneId?: string
   }
 
   if (!name || !type) {
@@ -35,15 +35,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "该域名已存在" }, { status: 409 })
   }
 
-  // 子域名自动继承父域的 cfZoneId
-  let resolvedZoneId = cfZoneId
-  if (type === "subdomain" && parentDomain && !cfZoneId) {
-    const parent = await db.query.domains.findFirst({
-      where: eq(domains.name, parentDomain.toLowerCase())
-    })
-    if (parent?.cfZoneId) {
-      resolvedZoneId = parent.cfZoneId
+  // 自动解析 CF Zone ID
+  let resolvedZoneId: string | undefined
+  try {
+    if (type === "native") {
+      // 原生域：直接从 CF 查
+      resolvedZoneId = await getZoneIdByName(name.toLowerCase())
+    } else if (parentDomain) {
+      // 子域：从父域继承
+      const parent = await db.query.domains.findFirst({
+        where: eq(domains.name, parentDomain.toLowerCase())
+      })
+      if (parent?.cfZoneId) {
+        resolvedZoneId = parent.cfZoneId
+      } else {
+        // 父域没有 zoneId，尝试从 CF 查父域
+        resolvedZoneId = await getZoneIdByName(parentDomain.toLowerCase())
+      }
     }
+  } catch {
+    // CF API 未配置或查不到，zoneId 留空，后续可手动配置
   }
 
   const result = await db.insert(domains).values({

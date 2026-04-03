@@ -2,7 +2,7 @@ import { createDb } from "@/lib/db"
 import { domains } from "@/lib/schema"
 import { eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
-import { enableEmailRouting, createCatchAllRule } from "@/lib/cloudflare-email"
+import { enableEmailRouting, createCatchAllRule, setupSubdomainDns } from "@/lib/cloudflare-email"
 
 export const runtime = "edge"
 
@@ -25,6 +25,11 @@ export async function POST(
   const worker = workerName || "moemail-email-receiver"
 
   try {
+    // 子域：先添加 DNS 记录（MX + TXT），让 CF 识别子域
+    if (domain.type === "subdomain") {
+      await setupSubdomainDns(domain.cfZoneId, domain.name)
+    }
+
     await enableEmailRouting(domain.cfZoneId)
     await createCatchAllRule(domain.cfZoneId, worker)
 

@@ -28,6 +28,15 @@ async function cfFetch(path: string, options: RequestInit = {}) {
   return data.result
 }
 
+// 根据域名自动查找 Zone ID
+export async function getZoneIdByName(domainName: string) {
+  const result = await cfFetch(`/zones?name=${encodeURIComponent(domainName)}&status=active`) as Array<{ id: string; name: string }>
+  if (!result || result.length === 0) {
+    throw new Error(`在 Cloudflare 中未找到域名 ${domainName}，请确认该域名已添加到 CF`)
+  }
+  return result[0].id
+}
+
 // 启用域名的 Email Routing
 export async function enableEmailRouting(zoneId: string) {
   return cfFetch(`/zones/${zoneId}/email/routing/enable`, { method: "POST", body: "{}" })
@@ -66,4 +75,38 @@ export async function listRoutingRules(zoneId: string) {
 // 删除路由规则
 export async function deleteRoutingRule(zoneId: string, ruleId: string) {
   return cfFetch(`/zones/${zoneId}/email/routing/rules/${ruleId}`, { method: "DELETE" })
+}
+
+// 为子域添加 Email Routing 所需的 DNS 记录（MX + TXT）
+export async function setupSubdomainDns(zoneId: string, subdomain: string) {
+  const mxServers = [
+    { content: "route1.mx.cloudflare.net", priority: 18 },
+    { content: "route2.mx.cloudflare.net", priority: 73 },
+    { content: "route3.mx.cloudflare.net", priority: 94 },
+  ]
+
+  // 添加 MX 记录
+  for (const mx of mxServers) {
+    await cfFetch(`/zones/${zoneId}/dns/records`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "MX",
+        name: subdomain,
+        content: mx.content,
+        priority: mx.priority,
+        ttl: 1,
+      }),
+    })
+  }
+
+  // 添加 SPF TXT 记录
+  await cfFetch(`/zones/${zoneId}/dns/records`, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "TXT",
+      name: subdomain,
+      content: "v=spf1 include:_spf.mx.cloudflare.net ~all",
+      ttl: 1,
+    }),
+  })
 }

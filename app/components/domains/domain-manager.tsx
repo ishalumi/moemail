@@ -27,7 +27,7 @@ export function DomainManager() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
-  const [newDomain, setNewDomain] = useState({ name: "", type: "native" as "native" | "subdomain", parentDomain: "", cfZoneId: "" })
+  const [newDomain, setNewDomain] = useState({ name: "", type: "native" as "native" | "subdomain", parentDomain: "" })
   const { toast } = useToast()
 
   const fetchDomains = async () => {
@@ -52,7 +52,7 @@ export function DomainManager() {
     }
     toast({ title: "成功", description: "域名已添加" })
     setAddOpen(false)
-    setNewDomain({ name: "", type: "native", parentDomain: "", cfZoneId: "" })
+    setNewDomain({ name: "", type: "native", parentDomain: "" })
     fetchDomains()
   }
 
@@ -120,10 +120,6 @@ export function DomainManager() {
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-              {newDomain.type === "native" && (
-                <Input placeholder="Cloudflare Zone ID（可选）" value={newDomain.cfZoneId}
-                  onChange={e => setNewDomain(p => ({ ...p, cfZoneId: e.target.value }))} />
               )}
               <Button onClick={handleAdd} className="w-full">添加</Button>
             </div>
