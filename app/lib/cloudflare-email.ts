@@ -136,3 +136,22 @@ export async function setupSubdomainDns(zoneId: string, subdomain: string) {
     if (!(e instanceof Error && e.message.includes("81058"))) throw e
   }
 }
+
+// 清理子域的 Email Routing DNS 记录（MX + TXT）
+export async function cleanupSubdomainDns(zoneId: string, subdomain: string) {
+  // 获取该子域的所有 DNS 记录
+  const records = await cfFetch(`/zones/${zoneId}/dns_records?name=${encodeURIComponent(subdomain)}&per_page=50`) as Array<{ id: string; type: string; name: string }>
+
+  if (!records || !Array.isArray(records)) return
+
+  // 只删除 MX 和 TXT（SPF）记录
+  for (const record of records) {
+    if (record.name === subdomain && (record.type === "MX" || record.type === "TXT")) {
+      try {
+        await cfFetch(`/zones/${zoneId}/dns_records/${record.id}`, { method: "DELETE" })
+      } catch {
+        // 单条删除失败不阻断
+      }
+    }
+  }
+}
