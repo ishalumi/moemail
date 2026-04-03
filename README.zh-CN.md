@@ -784,15 +784,40 @@ Content-Type: application/json
 {
   "name": "mail.example.com",
   "type": "subdomain",
-  "parentDomain": "example.com",
-  "cfZoneId": "zone-id-456"
+  "parentDomain": "example.com"
 }
 ```
 参数说明：
-- `name`: 域名，必填
+- `name`: 域名，必填。子域需传完整域名（如 `mail.example.com`）
 - `type`: 类型，`native`（原生域）或 `subdomain`（子域），必填
 - `parentDomain`: 父域名，子域类型时必填
-- `cfZoneId`: Cloudflare Zone ID，可选（子域自动继承父域）
+
+添加时自动执行：
+- 原生域：自动从 CF 解析 Zone ID → 启用 Email Routing → 配置 catch-all 到 Worker
+- 子域：自动继承父域 Zone ID → 创建 MX/TXT DNS 记录 → 启用 Email Routing → 配置 catch-all
+
+返回状态码：
+- `201`：完全成功（域名 + CF 路由均已配置）
+- `207`：部分成功（域名已添加，但 CF 配置失败，`cfError` 字段包含错误详情）
+- `400`：参数错误
+- `409`：域名已存在
+
+返回响应（201/207）：
+```json
+{
+  "domain": {
+    "id": "domain-uuid",
+    "name": "mail.example.com",
+    "type": "subdomain",
+    "parentDomain": "example.com",
+    "cfZoneId": "auto-resolved-zone-id",
+    "cfRouteEnabled": true,
+    "enabled": true,
+    "createdAt": 1704110400000
+  },
+  "cfError": null
+}
+```
 
 #### 获取域名详情
 ```http
@@ -804,17 +829,20 @@ GET /api/domains/{domainId}
 DELETE /api/domains/{domainId}
 ```
 
-#### 启用 CF Email Routing
+#### 手动启用 CF Email Routing（兜底）
+
+> 添加域名时会自动配置 CF Email Routing。仅当自动配置失败（返回 207）时，需要用此接口手动启用。
+
 ```http
 POST /api/domains/{domainId}/cf-routing
 Content-Type: application/json
 
 {
-  "workerName": "moemail-email-receiver"
+  "workerName": "email-receiver-worker"
 }
 ```
 参数说明：
-- `workerName`: Email Worker 名称，可选，默认为 `moemail-email-receiver`
+- `workerName`: Email Worker 名称，可选，默认为 `email-receiver-worker`
 
 ### 使用示例
 
