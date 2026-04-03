@@ -470,6 +470,30 @@ const updateEnvVar = (name: string, value: string) => {
 };
 
 /**
+ * 将 CF 凭证写入 KV（用于运行时域名管理）
+ */
+const pushCfCredentialsToKV = () => {
+  const token = process.env.CLOUDFLARE_API_TOKEN
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
+  if (!token || !accountId) return
+
+  console.log("🔐 Writing CF credentials to KV...")
+  try {
+    execSync(
+      `pnpm dlx wrangler kv key put --binding=SITE_CONFIG "CF_API_TOKEN" "${token}"`,
+      { stdio: "inherit" }
+    )
+    execSync(
+      `pnpm dlx wrangler kv key put --binding=SITE_CONFIG "CF_ACCOUNT_ID" "${accountId}"`,
+      { stdio: "inherit" }
+    )
+    console.log("✅ CF credentials written to KV")
+  } catch (error) {
+    console.error("⚠️ Failed to write CF credentials to KV:", error)
+  }
+}
+
+/**
  * 主函数
  */
 const main = async () => {
@@ -482,6 +506,7 @@ const main = async () => {
     await checkAndCreateDatabase();
     migrateDatabase();
     await checkAndCreateKVNamespace();
+    pushCfCredentialsToKV();
     await checkAndCreatePages();
     pushPagesSecret();
     deployPages();
