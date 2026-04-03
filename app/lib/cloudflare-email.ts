@@ -105,7 +105,7 @@ export async function setupSubdomainDns(zoneId: string, subdomain: string) {
   ]
 
   for (const mx of mxServers) {
-    await cfFetch(`/zones/${zoneId}/dns/records`, {
+    await cfFetch(`/zones/${zoneId}/dns_records`, {
       method: "POST",
       body: JSON.stringify({
         type: "MX",
@@ -117,7 +117,7 @@ export async function setupSubdomainDns(zoneId: string, subdomain: string) {
     })
   }
 
-  await cfFetch(`/zones/${zoneId}/dns/records`, {
+  await cfFetch(`/zones/${zoneId}/dns_records`, {
     method: "POST",
     body: JSON.stringify({
       type: "TXT",
