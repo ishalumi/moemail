@@ -38,6 +38,7 @@ export async function POST(request: Request) {
   // 自动解析 CF Zone ID
   let resolvedZoneId: string | undefined
   let cfRouteEnabled = false
+  let cfError: string | undefined
   try {
     if (type === "native") {
       resolvedZoneId = await getZoneIdByName(name.toLowerCase())
@@ -51,16 +52,19 @@ export async function POST(request: Request) {
         resolvedZoneId = await getZoneIdByName(parentDomain.toLowerCase())
       }
     }
+  } catch (error) {
+    cfError = `Zone ID 解析失败: ${error instanceof Error ? error.message : String(error)}`
+  }
 
-    // 子域：自动创建 DNS 记录 + 配置路由
-    if (type === "subdomain" && resolvedZoneId) {
+  // 子域：自动创建 DNS 记录 + 配置路由
+  if (type === "subdomain" && resolvedZoneId) {
+    try {
       await setupSubdomainDns(resolvedZoneId, name.toLowerCase())
       await createCatchAllRule(resolvedZoneId, "moemail-email-receiver")
       cfRouteEnabled = true
+    } catch (error) {
+      cfError = `CF 路由配置失败: ${error instanceof Error ? error.message : String(error)}`
     }
-  } catch (error) {
-    console.error("CF auto-setup failed:", error)
-    // CF 配置失败不阻断域名添加，后续可手动启用
   }
 
   const result = await db.insert(domains).values({
@@ -71,5 +75,5 @@ export async function POST(request: Request) {
     cfRouteEnabled,
   }).returning()
 
-  return NextResponse.json({ domain: result[0] })
+  return NextResponse.json({ domain: result[0], cfError })
 }

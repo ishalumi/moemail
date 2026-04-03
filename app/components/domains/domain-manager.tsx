@@ -55,7 +55,12 @@ export function DomainManager() {
       toast({ title: "错误", description: data.error, variant: "destructive" })
       return
     }
-    toast({ title: "成功", description: "域名已添加" })
+    const data = await res.json() as { domain: Domain; cfError?: string }
+    if (data.cfError) {
+      toast({ title: "域名已添加，但 CF 配置失败", description: data.cfError, variant: "destructive" })
+    } else {
+      toast({ title: "成功", description: "域名已添加" })
+    }
     setAddOpen(false)
     setNewDomain({ name: "", type: "native", parentDomain: "" })
     fetchDomains()
