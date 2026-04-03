@@ -123,7 +123,7 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px]">
                   {nativeDomains.length > 0 && (
                     <>
                       <div className="px-2 py-1 text-xs text-muted-foreground">原生域</div>
