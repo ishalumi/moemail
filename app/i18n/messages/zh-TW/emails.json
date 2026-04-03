@@ -28,7 +28,12 @@
     "deleteSuccess": "郵箱已刪除",
     "deleteFailed": "刪除郵箱失敗",
     "error": "錯誤",
-    "success": "成功"
+    "success": "成功",
+    "tabAll": "全部",
+    "tabPermanent": "永久",
+    "tabTemporary": "時效",
+    "searchPlaceholder": "搜尋郵箱...",
+    "allDomains": "全部域名"
   },
   "create": {
     "title": "建立郵箱",

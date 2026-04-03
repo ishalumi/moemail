@@ -18,23 +18,23 @@ export function registerReadCommand(program: Command) {
         if (json) {
           printJson({
             id: msg.id,
-            from: msg.from_address,
-            to: msg.to_address,
+            from: msg.sender,
+            to: msg.recipient,
             subject: msg.subject,
-            content: msg.content,
+            content: msg.text,
             html: msg.html,
-            receivedAt: msg.received_at ? msToIso(msg.received_at) : null,
+            receivedAt: msg.receivedAt ? msToIso(msg.receivedAt) : null,
             type: msg.type,
           });
         } else {
-          printText(`From: ${msg.from_address}`);
-          printText(`To: ${msg.to_address}`);
+          printText(`From: ${msg.sender}`);
+          printText(`To: ${msg.recipient}`);
           printText(`Subject: ${msg.subject}`);
           printText(`---`);
           if (opts.format === "html") {
             printText(msg.html || "(no HTML content)");
           } else {
-            printText(msg.content || "(no text content)");
+            printText(msg.text || "(no text content)");
           }
         }
       } catch (e: any) {

@@ -17,9 +17,9 @@ export function registerListCommand(program: Command) {
             printJson({
               messages: data.messages.map((m: any) => ({
                 id: m.id,
-                from: m.from_address,
+                from: m.sender,
                 subject: m.subject,
-                receivedAt: m.received_at ? msToIso(m.received_at) : null,
+                receivedAt: m.receivedAt ? msToIso(m.receivedAt) : null,
               })),
               nextCursor: data.nextCursor,
               total: data.total,
@@ -29,7 +29,7 @@ export function registerListCommand(program: Command) {
               printText("No messages.");
             } else {
               for (const m of data.messages) {
-                printText(`[${m.id}] From: ${m.from_address} — ${m.subject}`);
+                printText(`[${m.id}] From: ${m.sender} — ${m.subject}`);
               }
               printText(`Total: ${data.total}`);
             }

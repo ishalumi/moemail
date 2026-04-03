@@ -88,9 +88,13 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
     }
   }
 
+  const enabledDomains = config?.domainsList?.filter(d => d.enabled) ?? []
+  const nativeDomains = enabledDomains.filter(d => d.type === "native")
+  const subDomains = enabledDomains.filter(d => d.type === "subdomain")
+
   useEffect(() => {
-    if ((config?.emailDomainsArray?.length ?? 0) > 0) {
-      setCurrentDomain(config?.emailDomainsArray[0] ?? "")
+    if (enabledDomains.length > 0 && !currentDomain) {
+      setCurrentDomain(enabledDomains[0].name)
     }
   }, [config])
 
@@ -114,15 +118,28 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
               placeholder={t("namePlaceholder")}
               className="flex-1"
             />
-            {(config?.emailDomainsArray?.length ?? 0) > 1 && (
+            {enabledDomains.length > 1 && (
               <Select value={currentDomain} onValueChange={setCurrentDomain}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {config?.emailDomainsArray?.map(d => (
-                    <SelectItem key={d} value={d}>@{d}</SelectItem>
-                  ))}
+                  {nativeDomains.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">原生域</div>
+                      {nativeDomains.map(d => (
+                        <SelectItem key={d.id} value={d.name}>@{d.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {subDomains.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">子域</div>
+                      {subDomains.map(d => (
+                        <SelectItem key={d.id} value={d.name}>@{d.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             )}
@@ -185,4 +202,4 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
       </DialogContent>
     </Dialog>
   )
-} 
+}

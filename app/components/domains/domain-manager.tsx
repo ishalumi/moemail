@@ -1,0 +1,181 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Globe, Zap } from "lucide-react"
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
+} from "@/components/ui/dialog"
+
+interface Domain {
+  id: string
+  name: string
+  type: "native" | "subdomain"
+  parentDomain: string | null
+  cfZoneId: string | null
+  cfRouteEnabled: boolean
+  enabled: boolean
+  createdAt: number
+}
+
+export function DomainManager() {
+  const [domains, setDomains] = useState<Domain[]>([])
+  const [loading, setLoading] = useState(true)
+  const [addOpen, setAddOpen] = useState(false)
+  const [newDomain, setNewDomain] = useState({ name: "", type: "native" as const, parentDomain: "", cfZoneId: "" })
+  const { toast } = useToast()
+
+  const fetchDomains = async () => {
+    const res = await fetch("/api/domains")
+    const data = await res.json() as { domains: Domain[] }
+    setDomains(data.domains)
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchDomains() }, [])
+
+  const handleAdd = async () => {
+    const res = await fetch("/api/domains", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newDomain)
+    })
+    if (!res.ok) {
+      const data = await res.json() as { error: string }
+      toast({ title: "错误", description: data.error, variant: "destructive" })
+      return
+    }
+    toast({ title: "成功", description: "域名已添加" })
+    setAddOpen(false)
+    setNewDomain({ name: "", type: "native", parentDomain: "", cfZoneId: "" })
+    fetchDomains()
+  }
+
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/domains/${id}`, { method: "DELETE" })
+    setDomains(prev => prev.filter(d => d.id !== id))
+  }
+
+  const handleEnableCfRouting = async (id: string) => {
+    const res = await fetch(`/api/domains/${id}/cf-routing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    })
+    if (!res.ok) {
+      const data = await res.json() as { error: string }
+      toast({ title: "错误", description: data.error, variant: "destructive" })
+      return
+    }
+    toast({ title: "成功", description: "CF Email Routing 已启用" })
+    fetchDomains()
+  }
+
+  const nativeDomains = domains.filter(d => d.type === "native")
+  const subDomains = domains.filter(d => d.type === "subdomain")
+
+  if (loading) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">域名管理</h3>
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">添加域名</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>添加域名</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="域名（如 mail.example.com）" value={newDomain.name}
+                onChange={e => setNewDomain(p => ({ ...p, name: e.target.value }))} />
+              <Select value={newDomain.type}
+                onValueChange={v => setNewDomain(p => ({ ...p, type: v as "native" | "subdomain" }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="native">原生域</SelectItem>
+                  <SelectItem value="subdomain">子域</SelectItem>
+                </SelectContent>
+              </Select>
+              {newDomain.type === "subdomain" && (
+                <Select value={newDomain.parentDomain}
+                  onValueChange={v => setNewDomain(p => ({ ...p, parentDomain: v }))}>
+                  <SelectTrigger><SelectValue placeholder="选择父域名" /></SelectTrigger>
+                  <SelectContent>
+                    {nativeDomains.map(d => (
+                      <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {newDomain.type === "native" && (
+                <Input placeholder="Cloudflare Zone ID（可选）" value={newDomain.cfZoneId}
+                  onChange={e => setNewDomain(p => ({ ...p, cfZoneId: e.target.value }))} />
+              )}
+              <Button onClick={handleAdd} className="w-full">添加</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* 原生域列表 */}
+      <div>
+        <h4 className="text-sm font-medium text-muted-foreground mb-2">原生域</h4>
+        <div className="space-y-2">
+          {nativeDomains.map(d => (
+            <div key={d.id} className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">{d.name}</span>
+                {d.cfRouteEnabled && <Badge variant="secondary">CF 路由已启用</Badge>}
+              </div>
+              <div className="flex gap-1">
+                {d.cfZoneId && !d.cfRouteEnabled && (
+                  <Button variant="ghost" size="sm" onClick={() => handleEnableCfRouting(d.id)}>
+                    <Zap className="h-4 w-4 mr-1" />启用路由
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 子域列表 */}
+      {subDomains.length > 0 && (
+        <div>
+          <h4 className="text-sm font-medium text-muted-foreground mb-2">子域</h4>
+          <div className="space-y-2">
+            {subDomains.map(d => (
+              <div key={d.id} className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span>{d.name}</span>
+                  <Badge variant="outline">{d.parentDomain}</Badge>
+                  {d.cfRouteEnabled && <Badge variant="secondary">CF 路由已启用</Badge>}
+                </div>
+                <div className="flex gap-1">
+                  {d.cfZoneId && !d.cfRouteEnabled && (
+                    <Button variant="ghost" size="sm" onClick={() => handleEnableCfRouting(d.id)}>
+                      <Zap className="h-4 w-4 mr-1" />启用路由
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

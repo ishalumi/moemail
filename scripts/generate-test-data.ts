@@ -56,10 +56,10 @@ async function generateTestData(env: Env, userIdentifier: string) {
       const receivedMessages = Array.from({ length: Math.floor(MAX_MESSAGE_COUNT * 0.7) }).map((_, index) => ({
         id: crypto.randomUUID(),
         emailId: email.id,
-        fromAddress: `sender${index + 1}@example.com`,
-        toAddress: null,
+        sender: `sender${index + 1}@example.com`,
+        recipient: null,
         subject: `Received Message ${index + 1} - ${nanoid(6)}`,
-        content: `This is received message ${index + 1} content.\n\nBest regards,\nSender ${index + 1}`,
+        text: `This is received message ${index + 1} content.\n\nBest regards,\nSender ${index + 1}`,
         html: `<div>
           <h1>Received Message ${index + 1}</h1>
           <p>This is received message ${index + 1} content.</p>
@@ -74,11 +74,11 @@ async function generateTestData(env: Env, userIdentifier: string) {
       const sentMessages = Array.from({ length: Math.floor(MAX_MESSAGE_COUNT * 0.3) }).map((_, index) => ({
         id: crypto.randomUUID(),
         emailId: email.id,
-        fromAddress: null,
-        toAddress: `recipient${index + 1}@example.com`,
+        sender: null,
+        recipient: `recipient${index + 1}@example.com`,
         subject: `Sent Message ${index + 1} - ${nanoid(6)}`,
         html: `This is sent message ${index + 1} content.\n\nBest regards,\n${email.address}`,
-        content: '',
+        text: '',
         type: 'sent',
         sentAt: new Date(now.getTime() - index * 60 * 60 * 1000),
       }))

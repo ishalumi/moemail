@@ -5,9 +5,10 @@ import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CreateDialog } from "./create-dialog"
 import { ShareDialog } from "./share-dialog"
-import { Mail, RefreshCw, Trash2 } from "lucide-react"
+import { Mail, RefreshCw, Trash2, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useThrottle } from "@/hooks/use-throttle"
 import { EMAIL_CONFIG } from "@/config"
 import { useToast } from "@/components/ui/use-toast"
@@ -21,6 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ROLES } from "@/lib/permissions"
 import { useUserRole } from "@/hooks/use-user-role"
 import { useConfig } from "@/hooks/use-config"
@@ -56,17 +59,22 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
   const [loadingMore, setLoadingMore] = useState(false)
   const [total, setTotal] = useState(0)
   const [emailToDelete, setEmailToDelete] = useState<Email | null>(null)
+  const [activeTab, setActiveTab] = useState<"all" | "permanent" | "temporary">("all")
+  const [selectedDomain, setSelectedDomain] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState<string>("")
   const { toast } = useToast()
 
   const fetchEmails = async (cursor?: string) => {
     try {
       const url = new URL("/api/emails", window.location.origin)
-      if (cursor) {
-        url.searchParams.set('cursor', cursor)
-      }
+      if (cursor) url.searchParams.set('cursor', cursor)
+      if (activeTab !== 'all') url.searchParams.set('type', activeTab)
+      if (selectedDomain && selectedDomain !== 'all') url.searchParams.set('domain', selectedDomain)
+      if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim())
+
       const response = await fetch(url)
       const data = await response.json() as EmailResponse
-      
+
       if (!cursor) {
         const newEmails = data.emails
         const oldEmails = emails
@@ -120,6 +128,31 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
     if (session) fetchEmails()
   }, [session])
 
+  // Tab/域名筛选变化时重新加载
+  useEffect(() => {
+    if (session) {
+      setEmails([])
+      setNextCursor(null)
+      setLoading(true)
+      fetchEmails()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedDomain])
+
+  // 搜索防抖
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (session) {
+        setEmails([])
+        setNextCursor(null)
+        setLoading(true)
+        fetchEmails()
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery])
+
   const handleDelete = async (email: Email) => {
     try {
       const response = await fetch(`/api/emails/${email.id}`, {
@@ -143,7 +176,7 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
         title: t("success"),
         description: t("deleteSuccess")
       })
-      
+
       if (selectedEmailId === email.id) {
         onEmailSelect(null)
       }
@@ -163,28 +196,66 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="p-2 flex justify-between items-center border-b border-primary/20">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className={cn("h-8 w-8", refreshing && "animate-spin")}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <span className="text-xs text-gray-500">
-              {role === ROLES.EMPEROR ? (
-                t("emailCountUnlimited", { count: total })
-              ) : (
-                t("emailCount", { count: total, max: config?.maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS })
-              )}
-            </span>
+        <div className="p-2 flex flex-col gap-2 border-b border-primary/20">
+          {/* 第一行：刷新 + 计数 + 创建 */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className={cn("h-8 w-8", refreshing && "animate-spin")}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-gray-500">
+                {role === ROLES.EMPEROR ? (
+                  t("emailCountUnlimited", { count: total })
+                ) : (
+                  t("emailCount", { count: total, max: config?.maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS })
+                )}
+              </span>
+            </div>
+            <CreateDialog onEmailCreated={handleRefresh} />
           </div>
-          <CreateDialog onEmailCreated={handleRefresh} />
+
+          {/* 第二行：Tab 切换 */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+            <TabsList className="w-full">
+              <TabsTrigger value="all" className="flex-1">{t("tabAll")}</TabsTrigger>
+              <TabsTrigger value="permanent" className="flex-1">{t("tabPermanent")}</TabsTrigger>
+              <TabsTrigger value="temporary" className="flex-1">{t("tabTemporary")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* 第三行：搜索 + 域名筛选 */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("searchPlaceholder")}
+                className="pl-8 h-8 text-sm"
+              />
+            </div>
+            {(config?.emailDomainsArray?.length ?? 0) > 1 && (
+              <Select value={selectedDomain} onValueChange={setSelectedDomain}>
+                <SelectTrigger className="w-[140px] h-8">
+                  <SelectValue placeholder={t("allDomains")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allDomains")}</SelectItem>
+                  {config?.emailDomainsArray?.map(d => (
+                    <SelectItem key={d} value={d}>@{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         </div>
-        
+
         <div className="flex-1 overflow-auto p-2" onScroll={handleScroll}>
           {loading ? (
             <div className="text-center text-sm text-gray-500">{t("loading")}</div>
@@ -261,4 +332,4 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
       </AlertDialog>
     </>
   )
-} 
+}

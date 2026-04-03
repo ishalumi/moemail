@@ -89,16 +89,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       )
     }
     
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: {
         id: message.id,
-        from_address: message.fromAddress,
-        to_address: message.toAddress,
+        sender: message.sender,
+        recipient: message.recipient,
         subject: message.subject,
-        content: message.content,
+        text: message.text,
         html: message.html,
-        received_at: message.receivedAt.getTime(),
-        sent_at: message.receivedAt.getTime(),
+        receivedAt: message.receivedAt.getTime(),
+        sentAt: message.sentAt?.getTime(),
         type: message.type as 'received' | 'sent'
       }
     })

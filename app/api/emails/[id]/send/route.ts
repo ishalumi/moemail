@@ -111,10 +111,10 @@ export async function POST(
 
     await db.insert(messages).values({
       emailId: email.id,
-      fromAddress: email.address,
-      toAddress: to,
+      sender: email.address,
+      recipient: to,
       subject,
-      content: '',
+      text: '',
       type: "sent",
       html: content
     })

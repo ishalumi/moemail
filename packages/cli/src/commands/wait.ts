@@ -43,12 +43,12 @@ export function registerWaitCommand(program: Command) {
             if (json) {
               printJson({
                 messageId: msg.id,
-                from: msg.from_address,
+                from: msg.sender,
                 subject: msg.subject,
-                receivedAt: msg.received_at ? msToIso(msg.received_at) : null,
+                receivedAt: msg.receivedAt ? msToIso(msg.receivedAt) : null,
               });
             } else {
-              printText(`New message from ${msg.from_address}: "${msg.subject}"`);
+              printText(`New message from ${msg.sender}: "${msg.subject}"`);
               printText(`Message ID: ${msg.id}`);
             }
             return;

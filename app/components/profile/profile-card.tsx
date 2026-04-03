@@ -14,6 +14,7 @@ import { useRolePermission } from "@/hooks/use-role-permission"
 import { PERMISSIONS } from "@/lib/permissions"
 import { WebsiteConfigPanel } from "./website-config-panel"
 import { ApiKeyPanel } from "./api-key-panel"
+import { DomainManager } from "@/components/domains/domain-manager"
 
 interface ProfileCardProps {
   user: User
@@ -146,6 +147,11 @@ export function ProfileCard({ user }: ProfileCardProps) {
       )}
 
       {canManageConfig && <WebsiteConfigPanel />}
+      {canManageConfig && (
+        <div className="bg-background rounded-lg border-2 border-primary/20 p-6">
+          <DomainManager />
+        </div>
+      )}
       {canManageConfig && <EmailServiceConfig />}
       {canPromote && <PromotePanel />}
       {canManageWebhook && <ApiKeyPanel />}

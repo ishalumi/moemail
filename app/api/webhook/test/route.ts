@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         messageId: '987654321',
         fromAddress: "sender@example.com",
         subject: "Test Email",
-        content: "This is a test email.",
+        text: "This is a test email.",
         html: "<p>This is a <strong>test</strong> email.</p>",
         receivedAt: "2023-03-01T12:00:00Z",
         toAddress: "recipient@example.com"

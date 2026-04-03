@@ -12,6 +12,7 @@ const API_PERMISSIONS: Record<string, Permission> = {
   '/api/roles/promote': PERMISSIONS.PROMOTE_USER,
   '/api/config': PERMISSIONS.MANAGE_CONFIG,
   '/api/api-keys': PERMISSIONS.MANAGE_API_KEY,
+  '/api/domains': PERMISSIONS.MANAGE_CONFIG,
 }
 
 export async function middleware(request: Request) {
@@ -38,6 +39,10 @@ export async function middleware(request: Request) {
     }
 
     if (pathname === '/api/config' && request.method === 'GET') {
+      return NextResponse.next()
+    }
+
+    if (pathname === '/api/domains' && request.method === 'GET') {
       return NextResponse.next()
     }
 
@@ -136,5 +141,6 @@ export const config = {
     '/api/roles/:path*',
     '/api/config/:path*',
     '/api/api-keys/:path*',
+    '/api/domains/:path*',
   ]
 } 

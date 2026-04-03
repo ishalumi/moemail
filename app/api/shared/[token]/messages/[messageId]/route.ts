@@ -63,13 +63,13 @@ export async function GET(
     return NextResponse.json({
       message: {
         id: message.id,
-        from_address: message.fromAddress,
-        to_address: message.toAddress,
+        sender: message.sender,
+        recipient: message.recipient,
         subject: message.subject,
-        content: message.content,
+        text: message.text,
         html: message.html,
-        received_at: message.receivedAt,
-        sent_at: message.sentAt
+        receivedAt: message.receivedAt,
+        sentAt: message.sentAt
       }
     })
   } catch (error) {

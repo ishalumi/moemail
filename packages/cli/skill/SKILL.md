@@ -74,7 +74,7 @@ moemail create --expiry 24h --json   # ❌ wrong position
 
 **wait:** `{ "messageId": "...", "from": "...", "subject": "...", "receivedAt": "2025-..." }`
 
-**read:** `{ "id": "...", "from": "...", "to": "...", "subject": "...", "content": "plain text", "html": "...", "receivedAt": "..." }`
+**read:** `{ "id": "...", "from": "...", "to": "...", "subject": "...", "content": "plain text", "html": "...", "receivedAt": "...", "type": "received" }`
 
 **send:** `{ "success": true, "remainingEmails": 10 }`
 
@@ -86,4 +86,4 @@ moemail create --expiry 24h --json   # ❌ wrong position
 | `--json` after subcommand | Move `--json` before the subcommand |
 | Timeout too short for slow services | Use `--timeout 300` for unreliable senders |
 | Inbox expired mid-test | Use `--expiry permanent` for long-running workflows |
-| Using `content` field for HTML emails | Check both `content` (plain text) and `html` fields |
+| Using `text` field for HTML emails | Check both `text` (plain text) and `html` fields |

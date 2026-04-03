@@ -25,9 +25,9 @@ const handleEmail = async (message: ForwardableEmailMessage, env: Env) => {
 
     const savedMessage = await db.insert(messages).values({
       emailId: targetEmail.id,
-      fromAddress: message.from,
+      sender: message.from,
       subject: parsedMessage.subject || '(无主题)',
-      content: parsedMessage.text || '',
+      text: parsedMessage.text || '',
       html: parsedMessage.html || '',
       type: 'received',
     }).returning().get()
@@ -47,9 +47,9 @@ const handleEmail = async (message: ForwardableEmailMessage, env: Env) => {
           body: JSON.stringify({
             emailId: targetEmail.id,
             messageId: savedMessage.id,
-            fromAddress: savedMessage.fromAddress,
+            fromAddress: savedMessage.sender,
             subject: savedMessage.subject,
-            content: savedMessage.content,
+            text: savedMessage.text,
             html: savedMessage.html,
             receivedAt: savedMessage.receivedAt.toISOString(),
             toAddress: targetEmail.address

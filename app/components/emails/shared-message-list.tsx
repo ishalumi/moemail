@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 
 interface Message {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  received_at?: number
-  sent_at?: number
+  receivedAt?: number
+  sentAt?: number
 }
 
 interface SharedMessageListProps {
@@ -101,12 +101,12 @@ export function SharedMessageList({
                     </p>
                     <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                       <span className="truncate">
-                        {message.from_address || message.to_address || ""}
+                        {message.sender || message.recipient || ""}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(
-                          message.received_at || message.sent_at || 0
+                          message.receivedAt || message.sentAt || 0
                         ).toLocaleString()}
                       </span>
                     </div>

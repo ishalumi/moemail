@@ -11,13 +11,13 @@ export interface SharedEmail {
 
 export interface SharedMessage {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  content?: string
+  text?: string
   html?: string
-  received_at?: Date
-  sent_at?: Date
+  receivedAt?: Date
+  sentAt?: Date
   expiresAt?: Date
   emailAddress?: string
   emailExpiresAt?: Date
@@ -126,11 +126,11 @@ export async function getSharedEmailMessages(token: string, limit = 20): Promise
     return {
       messages: results.map(msg => ({
         id: msg.id,
-        from_address: msg.fromAddress ?? undefined,
-        to_address: msg.toAddress ?? undefined,
+        sender: msg.sender ?? undefined,
+        recipient: msg.recipient ?? undefined,
         subject: msg.subject,
-        received_at: msg.receivedAt,
-        sent_at: msg.sentAt
+        receivedAt: msg.receivedAt,
+        sentAt: msg.sentAt
       })),
       nextCursor,
       total: totalCount
@@ -174,13 +174,13 @@ export async function getSharedMessage(token: string): Promise<SharedMessage | n
 
     return {
       id: message.id,
-      from_address: message.fromAddress ?? undefined,
-      to_address: message.toAddress ?? undefined,
+      sender: message.sender ?? undefined,
+      recipient: message.recipient ?? undefined,
       subject: message.subject,
-      content: message.content ?? undefined,
+      text: message.text ?? undefined,
       html: message.html ?? undefined,
-      received_at: message.receivedAt,
-      sent_at: message.sentAt,
+      receivedAt: message.receivedAt,
+      sentAt: message.sentAt,
       expiresAt: share.expiresAt ?? undefined,
       emailAddress: email?.address,
       emailExpiresAt: email?.expiresAt

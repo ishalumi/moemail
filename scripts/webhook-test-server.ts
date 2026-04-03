@@ -18,7 +18,7 @@ const server = Bun.serve({
       console.log("From:", data.fromAddress)
       console.log("To:", data.toAddress)
       console.log("Subject:", data.subject)
-      console.log("Raw Content:", data.content)
+      console.log("Raw Content:", data.text)
       console.log("HTML Content:", data.html)
       console.log("Message ID:", data.messageId)
       console.log("Email ID:", data.emailId)

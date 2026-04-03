@@ -104,11 +104,11 @@ export async function GET(
     return NextResponse.json({
       messages: messageList.map(msg => ({
         id: msg.id,
-        from_address: msg.fromAddress,
-        to_address: msg.toAddress,
+        sender: msg.sender,
+        recipient: msg.recipient,
         subject: msg.subject,
-        received_at: msg.receivedAt,
-        sent_at: msg.sentAt
+        receivedAt: msg.receivedAt,
+        sentAt: msg.sentAt
       })),
       nextCursor,
       total: totalCount

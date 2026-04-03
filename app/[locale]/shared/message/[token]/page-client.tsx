@@ -7,13 +7,13 @@ import { SharedMessageDetail } from "@/components/emails/shared-message-detail"
 
 interface MessageDetail {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  content?: string
+  text?: string
   html?: string
-  received_at?: Date
-  sent_at?: Date
+  receivedAt?: Date
+  sentAt?: Date
   expiresAt?: Date
   emailAddress?: string
   emailExpiresAt?: Date
@@ -31,7 +31,7 @@ export function SharedMessagePageClient({ message }: SharedMessagePageClientProp
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-4 max-w-7xl">
         <BrandHeader
-          title={message.emailAddress || message.to_address || message.subject}
+          title={message.emailAddress || message.recipient || message.subject}
           subtitle={message.emailExpiresAt && new Date(message.emailExpiresAt).getFullYear() === 9999
             ? tShared("permanent")
             : message.emailExpiresAt
@@ -45,8 +45,8 @@ export function SharedMessagePageClient({ message }: SharedMessagePageClientProp
             <SharedMessageDetail
               message={{
                 ...message,
-                received_at: message.received_at ? new Date(message.received_at).getTime() : undefined,
-                sent_at: message.sent_at ? new Date(message.sent_at).getTime() : undefined
+                receivedAt: message.receivedAt ? new Date(message.receivedAt).getTime() : undefined,
+                sentAt: message.sentAt ? new Date(message.sentAt).getTime() : undefined
               }}
               loading={false}
               t={{

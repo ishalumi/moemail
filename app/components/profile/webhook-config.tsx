@@ -197,7 +197,7 @@ export function WebhookConfig() {
   "messageId": "message-uuid",
   "fromAddress": "sender@example.com",
   "subject": "${t("docs.subject")}",
-  "content": "${t("docs.content")}",
+  "text": "${t("docs.content")}",
   "html": "${t("docs.html")}",
   "receivedAt": "2024-01-01T12:00:00.000Z",
   "toAddress": "your-email@${window.location.host}"

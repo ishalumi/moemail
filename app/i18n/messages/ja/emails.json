@@ -28,7 +28,12 @@
     "deleteSuccess": "メールボックスを削除しました",
     "deleteFailed": "メールボックスの削除に失敗しました",
     "error": "エラー",
-    "success": "成功"
+    "success": "成功",
+    "tabAll": "すべて",
+    "tabPermanent": "永久",
+    "tabTemporary": "期限付き",
+    "searchPlaceholder": "メールボックスを検索...",
+    "allDomains": "すべてのドメイン"
   },
   "create": {
     "title": "メールボックスを作成",

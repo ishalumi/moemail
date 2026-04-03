@@ -39,6 +39,22 @@ export const accounts = sqliteTable(
   })
 )
 
+export const domains = sqliteTable("domain", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull().unique(),
+  type: text("type").notNull().default("native"),
+  parentDomain: text("parent_domain"),
+  cfZoneId: text("cf_zone_id"),
+  cfRouteEnabled: integer("cf_route_enabled", { mode: "boolean" }).notNull().default(false),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+}, (table) => ({
+  nameIdx: index("domain_name_idx").on(table.name),
+  typeIdx: index("domain_type_idx").on(table.type),
+}))
+
 export const emails = sqliteTable("email", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   address: text("address").notNull().unique(),
@@ -58,10 +74,10 @@ export const messages = sqliteTable("message", {
   emailId: text("emailId")
     .notNull()
     .references(() => emails.id, { onDelete: "cascade" }),
-  fromAddress: text("from_address"),
-  toAddress: text("to_address"),
+  sender: text("sender"),
+  recipient: text("recipient"),
   subject: text("subject").notNull(),
-  content: text("content").notNull(),
+  text: text("text").notNull(),
   html: text("html"),
   type: text("type"),
   receivedAt: integer("received_at", { mode: "timestamp_ms" })
@@ -153,6 +169,9 @@ export const messageShares = sqliteTable('message_share', {
 }));
 
 
+
+export const domainsRelations = relations(domains, ({ many }) => ({
+}))
 
 export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
   user: one(users, {

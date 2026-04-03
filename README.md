@@ -301,9 +301,12 @@ The system includes four role levels:
 System settings are stored in Cloudflare KV, including:
 
 - `DEFAULT_ROLE`: Default role for new users, values: `CIVILIAN`, `KNIGHT`, `DUKE`
-- `EMAIL_DOMAINS`: Supported email domains, comma-separated
 - `ADMIN_CONTACT`: Administrator contact info
 - `MAX_EMAILS`: Maximum number of emails per user
+- `CF_API_TOKEN`: Cloudflare API Token (for domain Email Routing auto-configuration)
+- `CF_ACCOUNT_ID`: Cloudflare Account ID
+
+> Note: Email domains have been migrated from KV to the D1 database `domains` table, managed via the Domain Management API (`/api/domains`).
 
 **Emperor** role can configure these in the User Profile page.
 
@@ -477,8 +480,13 @@ Response:
 
 #### Get Email List
 ```http
-GET /api/emails?cursor=xxx
+GET /api/emails?cursor=xxx&type=permanent&domain=moemail.app&search=test
 ```
+Params:
+- `cursor`: Pagination cursor
+- `type`: Filter by `permanent` or `temporary`
+- `domain`: Filter by domain name
+- `search`: Search email address
 
 #### Get Messages for Email
 ```http
@@ -533,6 +541,44 @@ GET /api/emails/{emailId}/messages/{messageId}/share
 #### Delete Message Share Link
 ```http
 DELETE /api/emails/{emailId}/messages/{messageId}/share/{shareId}
+```
+
+#### Get Domain List
+```http
+GET /api/domains
+```
+
+#### Add Domain
+```http
+POST /api/domains
+Content-Type: application/json
+
+{
+  "name": "mail.example.com",
+  "type": "subdomain",
+  "parentDomain": "example.com",
+  "cfZoneId": "zone-id"
+}
+```
+Params:
+- `name`: Domain name (required)
+- `type`: `native` or `subdomain` (required)
+- `parentDomain`: Parent domain, required for subdomain type
+- `cfZoneId`: Cloudflare Zone ID (optional, subdomain inherits from parent)
+
+#### Delete Domain
+```http
+DELETE /api/domains/{domainId}
+```
+
+#### Enable CF Email Routing
+```http
+POST /api/domains/{domainId}/cf-routing
+Content-Type: application/json
+
+{
+  "workerName": "moemail-email-receiver"
+}
 ```
 
 ## CLI Tool

@@ -5,7 +5,7 @@ export interface EmailMessage {
   messageId: string
   fromAddress: string
   subject: string
-  content: string
+  text: string
   html: string
   receivedAt: string
   toAddress: string

@@ -22,12 +22,12 @@ import {
 
 interface Message {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  received_at?: number
-  sent_at?: number
-  content?: string
+  receivedAt?: number
+  sentAt?: number
+  text?: string
   html?: string
 }
 
@@ -244,11 +244,11 @@ export function MessageList({ email, messageType, onMessageSelect, selectedMessa
                     <p className="font-medium text-sm truncate">{message.subject}</p>
                     <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                       <span className="truncate">
-                        {message.from_address || message.to_address || ''}
+                        {message.sender || message.recipient || ''}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(message.received_at || message.sent_at || 0).toLocaleString()}
+                        {new Date(message.receivedAt || message.sentAt || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>

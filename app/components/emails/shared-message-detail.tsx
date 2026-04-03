@@ -8,13 +8,13 @@ import { useTheme } from "next-themes"
 
 interface MessageDetail {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  content?: string
+  text?: string
   html?: string
-  received_at?: number
-  sent_at?: number
+  receivedAt?: number
+  sentAt?: number
 }
 
 interface SharedMessageDetailProps {
@@ -47,7 +47,7 @@ export function SharedMessageDetail({
   // 如果没有HTML内容，默认显示文本
   useEffect(() => {
     if (message) {
-      if (!message.html && message.content) {
+      if (!message.html && message.text) {
         setViewMode("text")
       } else if (message.html) {
         setViewMode("html")
@@ -177,26 +177,26 @@ export function SharedMessageDetail({
           <h3 className="text-base font-bold flex-1">{message.subject}</h3>
         </div>
         <div className="text-xs text-gray-500 space-y-1">
-          {message.from_address && (
+          {message.sender && (
             <p>
-              {t.from}: {message.from_address}
+              {t.from}: {message.sender}
             </p>
           )}
-          {message.to_address && (
+          {message.recipient && (
             <p>
-              {t.to}: {message.to_address}
+              {t.to}: {message.recipient}
             </p>
           )}
           <p>
             {t.time}:{" "}
             {new Date(
-              message.sent_at || message.received_at || 0
+              message.sentAt || message.receivedAt || 0
             ).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {message.html && message.content && (
+      {message.html && message.text && (
         <div className="border-b border-primary/20 p-2">
           <RadioGroup
             value={viewMode}
@@ -226,9 +226,9 @@ export function SharedMessageDetail({
             className="absolute inset-0 w-full h-full border-0 bg-transparent"
             sandbox="allow-same-origin allow-popups"
           />
-        ) : message.content ? (
+        ) : message.text ? (
           <div className="p-4 text-sm whitespace-pre-wrap">
-            {message.content}
+            {message.text}
           </div>
         ) : (
           <div className="flex items-center justify-center h-32 text-gray-500 text-sm">

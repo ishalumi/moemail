@@ -28,7 +28,12 @@
     "deleteSuccess": "邮箱已删除",
     "deleteFailed": "删除邮箱失败",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "tabAll": "全部",
+    "tabPermanent": "永久",
+    "tabTemporary": "时效",
+    "searchPlaceholder": "搜索邮箱...",
+    "allDomains": "全部域名"
   },
   "create": {
     "title": "创建邮箱",

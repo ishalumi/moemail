@@ -5,10 +5,21 @@ import { Role, ROLES } from "@/lib/permissions"
 import { EMAIL_CONFIG } from "@/config"
 import { useEffect } from "react"
 
+interface DomainInfo {
+  id: string
+  name: string
+  type: "native" | "subdomain"
+  parentDomain: string | null
+  cfZoneId: string | null
+  cfRouteEnabled: boolean
+  enabled: boolean
+}
+
 interface Config {
   defaultRole: Exclude<Role, typeof ROLES.EMPEROR>
   emailDomains: string
   emailDomainsArray: string[]
+  domainsList: DomainInfo[]
   adminContact: string
   maxEmails: number
 }
@@ -29,21 +40,22 @@ const useConfigStore = create<ConfigStore>((set) => ({
       set({ loading: true, error: null })
       const res = await fetch("/api/config")
       if (!res.ok) throw new Error("获取配置失败")
-      const data = await res.json() as Config
+      const data = await res.json() as Config & { domainsList?: DomainInfo[] }
       set({
         config: {
           defaultRole: data.defaultRole || ROLES.CIVILIAN,
           emailDomains: data.emailDomains,
           emailDomainsArray: data.emailDomains.split(','),
+          domainsList: data.domainsList || [],
           adminContact: data.adminContact || "",
           maxEmails: Number(data.maxEmails) || EMAIL_CONFIG.MAX_ACTIVE_EMAILS
         },
         loading: false
       })
     } catch (error) {
-      set({ 
+      set({
         error: error instanceof Error ? error.message : "获取配置失败",
-        loading: false 
+        loading: false
       })
     }
   }
@@ -59,4 +71,4 @@ export function useConfig() {
   }, [store.config, store.loading])
 
   return store
-} 
+}

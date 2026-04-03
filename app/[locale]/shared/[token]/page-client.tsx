@@ -17,15 +17,15 @@ interface Email {
 
 interface Message {
   id: string
-  from_address?: string
-  to_address?: string
+  sender?: string
+  recipient?: string
   subject: string
-  received_at?: Date
-  sent_at?: Date
+  receivedAt?: Date
+  sentAt?: Date
 }
 
 interface MessageDetail extends Message {
-  content?: string
+  text?: string
   html?: string
 }
 
@@ -197,19 +197,19 @@ export function SharedEmailPageClient({
             <SharedMessageList
               messages={messages.map(msg => ({
                 ...msg,
-                received_at: (() => {
-                  if (!msg.received_at) return undefined
+                receivedAt: (() => {
+                  if (!msg.receivedAt) return undefined
                   try {
-                    const date = new Date(msg.received_at)
+                    const date = new Date(msg.receivedAt)
                     return isNaN(date.getTime()) ? undefined : date.getTime()
                   } catch {
                     return undefined
                   }
                 })(),
-                sent_at: (() => {
-                  if (!msg.sent_at) return undefined
+                sentAt: (() => {
+                  if (!msg.sentAt) return undefined
                   try {
-                    const date = new Date(msg.sent_at)
+                    const date = new Date(msg.sentAt)
                     return isNaN(date.getTime()) ? undefined : date.getTime()
                   } catch {
                     return undefined
@@ -239,19 +239,19 @@ export function SharedEmailPageClient({
             <SharedMessageDetail
               message={selectedMessage ? {
                 ...selectedMessage,
-                received_at: (() => {
-                  if (!selectedMessage.received_at) return undefined
+                receivedAt: (() => {
+                  if (!selectedMessage.receivedAt) return undefined
                   try {
-                    const date = new Date(selectedMessage.received_at)
+                    const date = new Date(selectedMessage.receivedAt)
                     return isNaN(date.getTime()) ? undefined : date.getTime()
                   } catch {
                     return undefined
                   }
                 })(),
-                sent_at: (() => {
-                  if (!selectedMessage.sent_at) return undefined
+                sentAt: (() => {
+                  if (!selectedMessage.sentAt) return undefined
                   try {
-                    const date = new Date(selectedMessage.sent_at)
+                    const date = new Date(selectedMessage.sentAt)
                     return isNaN(date.getTime()) ? undefined : date.getTime()
                   } catch {
                     return undefined
@@ -282,19 +282,19 @@ export function SharedEmailPageClient({
               <SharedMessageList
                 messages={messages.map(msg => ({
                   ...msg,
-                  received_at: (() => {
-                    if (!msg.received_at) return undefined
+                  receivedAt: (() => {
+                    if (!msg.receivedAt) return undefined
                     try {
-                      const date = new Date(msg.received_at)
+                      const date = new Date(msg.receivedAt)
                       return isNaN(date.getTime()) ? undefined : date.getTime()
                     } catch {
                       return undefined
                     }
                   })(),
-                  sent_at: (() => {
-                    if (!msg.sent_at) return undefined
+                  sentAt: (() => {
+                    if (!msg.sentAt) return undefined
                     try {
-                      const date = new Date(msg.sent_at)
+                      const date = new Date(msg.sentAt)
                       return isNaN(date.getTime()) ? undefined : date.getTime()
                     } catch {
                       return undefined
@@ -334,19 +334,19 @@ export function SharedEmailPageClient({
                   <SharedMessageDetail
                     message={{
                       ...selectedMessage,
-                      received_at: (() => {
-                        if (!selectedMessage.received_at) return undefined
+                      receivedAt: (() => {
+                        if (!selectedMessage.receivedAt) return undefined
                         try {
-                          const date = new Date(selectedMessage.received_at)
+                          const date = new Date(selectedMessage.receivedAt)
                           return isNaN(date.getTime()) ? undefined : date.getTime()
                         } catch {
                           return undefined
                         }
                       })(),
-                      sent_at: (() => {
-                        if (!selectedMessage.sent_at) return undefined
+                      sentAt: (() => {
+                        if (!selectedMessage.sentAt) return undefined
                         try {
-                          const date = new Date(selectedMessage.sent_at)
+                          const date = new Date(selectedMessage.sentAt)
                           return isNaN(date.getTime()) ? undefined : date.getTime()
                         } catch {
                           return undefined

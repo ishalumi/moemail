@@ -300,9 +300,12 @@ pnpm dlx tsx ./scripts/deploy/index.ts
 系统设置存储在 Cloudflare KV 中，包括以下内容：
 
 - `DEFAULT_ROLE`: 新注册用户默认角色，可选值为 `CIVILIAN`、`KNIGHT`、`DUKE`
-- `EMAIL_DOMAINS`: 支持的邮箱域名，多个域名用逗号分隔
 - `ADMIN_CONTACT`: 管理员联系方式
 - `MAX_EMAILS`: 每个用户可创建的最大邮箱数量
+- `CF_API_TOKEN`: Cloudflare API Token（用于域名 Email Routing 自动配置）
+- `CF_ACCOUNT_ID`: Cloudflare Account ID
+
+> 注意：邮箱域名已从 KV 迁移到 D1 数据库的 `domains` 表，通过域名管理 API (`/api/domains`) 进行管理。
 
 **皇帝**角色可以在个人中心页面设置
 
@@ -488,6 +491,9 @@ GET /api/emails?cursor=xxx
 ```
 参数说明：
 - `cursor`: 分页游标，可选
+- `type`: 邮箱分类筛选，可选值：`permanent`（永久）、`temporary`（时效）
+- `domain`: 域名筛选，如 `moemail.app`
+- `search`: 邮箱名搜索关键词
 
 返回响应：
 ```json
@@ -524,9 +530,11 @@ GET /api/emails/{emailId}?cursor=xxx
   "messages": [
     {
       "id": "message-uuid-789",
-      "from_address": "sender@example.com",
+      "sender": "sender@example.com",
+      "recipient": "test@moemail.app",
       "subject": "邮件主题",
-      "received_at": 1704110400000
+      "sentAt": 1704110400000,
+      "receivedAt": 1704110400000
     }
   ],
   "nextCursor": "encoded-cursor-string",
@@ -535,6 +543,11 @@ GET /api/emails/{emailId}?cursor=xxx
 ```
 响应字段说明：
 - `messages`: 邮件列表数组
+  - `sender`: 发件人邮箱地址
+  - `recipient`: 收件人邮箱地址
+  - `subject`: 邮件主题
+  - `sentAt`: 发送时间（时间戳，毫秒）
+  - `receivedAt`: 接收时间（时间戳，毫秒）
 - `nextCursor`: 下一页游标，用于分页请求
 - `total`: 邮件总数量
 
@@ -567,22 +580,26 @@ GET /api/emails/{emailId}/{messageId}
 {
   "message": {
     "id": "message-uuid-789",
-    "from_address": "sender@example.com",
+    "sender": "sender@example.com",
+    "recipient": "test@moemail.app",
     "subject": "邮件主题",
-    "content": "邮件文本内容",
+    "text": "邮件文本内容",
     "html": "<p>邮件HTML内容</p>",
-    "received_at": 1704110400000
+    "receivedAt": 1704110400000,
+    "sentAt": 1704110400000
   }
 }
 ```
 响应字段说明：
 - `message`: 邮件详细信息对象
-- `id`: 邮件的唯一标识符
-- `from_address`: 发件人邮箱地址
-- `subject`: 邮件主题
-- `content`: 邮件纯文本内容
-- `html`: 邮件HTML内容
-- `received_at`: 接收时间（时间戳）
+  - `id`: 邮件的唯一标识符
+  - `sender`: 发件人邮箱地址
+  - `recipient`: 收件人邮箱地址
+  - `subject`: 邮件主题
+  - `text`: 邮件纯文本内容
+  - `html`: 邮件HTML内容
+  - `receivedAt`: 接收时间（时间戳，毫秒）
+  - `sentAt`: 发送时间（时间戳，毫秒）
 
 #### 创建邮箱分享链接
 ```http
@@ -736,6 +753,68 @@ DELETE /api/emails/{emailId}/messages/{messageId}/share/{shareId}
 ```
 响应字段说明：
 - `success`: 删除操作是否成功
+
+#### 获取域名列表
+```http
+GET /api/domains
+```
+返回响应：
+```json
+{
+  "domains": [
+    {
+      "id": "domain-uuid-123",
+      "name": "moemail.app",
+      "type": "native",
+      "parentDomain": null,
+      "cfZoneId": "zone-id-123",
+      "cfRouteEnabled": true,
+      "enabled": true,
+      "createdAt": 1704110400000
+    }
+  ]
+}
+```
+
+#### 添加域名
+```http
+POST /api/domains
+Content-Type: application/json
+
+{
+  "name": "mail.example.com",
+  "type": "subdomain",
+  "parentDomain": "example.com",
+  "cfZoneId": "zone-id-456"
+}
+```
+参数说明：
+- `name`: 域名，必填
+- `type`: 类型，`native`（原生域）或 `subdomain`（子域），必填
+- `parentDomain`: 父域名，子域类型时必填
+- `cfZoneId`: Cloudflare Zone ID，可选（子域自动继承父域）
+
+#### 获取域名详情
+```http
+GET /api/domains/{domainId}
+```
+
+#### 删除域名
+```http
+DELETE /api/domains/{domainId}
+```
+
+#### 启用 CF Email Routing
+```http
+POST /api/domains/{domainId}/cf-routing
+Content-Type: application/json
+
+{
+  "workerName": "moemail-email-receiver"
+}
+```
+参数说明：
+- `workerName`: Email Worker 名称，可选，默认为 `moemail-email-receiver`
 
 ### 使用示例
 
