@@ -2,7 +2,7 @@ import { createDb } from "@/lib/db"
 import { domains } from "@/lib/schema"
 import { eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
-import { getZoneIdByName, setupSubdomainDns, enableEmailRouting, createCatchAllRule } from "@/lib/cloudflare-email"
+import { getZoneIdByName, setupSubdomainDns, createCatchAllRule } from "@/lib/cloudflare-email"
 
 export const runtime = "edge"
 
