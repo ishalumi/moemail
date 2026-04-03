@@ -77,15 +77,32 @@ export async function deleteRoutingRule(zoneId: string, ruleId: string) {
   return cfFetch(`/zones/${zoneId}/email/routing/rules/${ruleId}`, { method: "DELETE" })
 }
 
-// 为子域添加 Email Routing 所需的 DNS 记录（MX + TXT）
+// 为子域添加 Email Routing 所需的 DNS 记录
+// 使用 CF 官方 Email Routing DNS API，让 CF 自动生成正确的 MX + TXT 记录
 export async function setupSubdomainDns(zoneId: string, subdomain: string) {
+  // CF 提供的 Email Routing DNS 端点，传入子域名前缀
+  // 该 API 会自动创建正确的 MX + TXT 记录
+  const parts = subdomain.split('.')
+  const subdomainPrefix = parts[0] // e.g. "mail" from "mail.ishalumi.me"
+
+  // 先尝试用 Email Routing 的子域 API
+  try {
+    await cfFetch(`/zones/${zoneId}/email/routing/dns`, {
+      method: "POST",
+      body: JSON.stringify({ name: subdomainPrefix }),
+    })
+    return
+  } catch {
+    // 如果专用 API 不存在，手动添加 DNS 记录
+  }
+
+  // 回退：手动创建 MX + TXT 记录
   const mxServers = [
-    { content: "route1.mx.cloudflare.net", priority: 18 },
-    { content: "route2.mx.cloudflare.net", priority: 73 },
-    { content: "route3.mx.cloudflare.net", priority: 94 },
+    { content: "route1.mx.cloudflare.net", priority: 70 },
+    { content: "route2.mx.cloudflare.net", priority: 88 },
+    { content: "route3.mx.cloudflare.net", priority: 50 },
   ]
 
-  // 添加 MX 记录
   for (const mx of mxServers) {
     await cfFetch(`/zones/${zoneId}/dns/records`, {
       method: "POST",
@@ -99,7 +116,6 @@ export async function setupSubdomainDns(zoneId: string, subdomain: string) {
     })
   }
 
-  // 添加 SPF TXT 记录
   await cfFetch(`/zones/${zoneId}/dns/records`, {
     method: "POST",
     body: JSON.stringify({
