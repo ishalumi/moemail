@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CreateDialog } from "./create-dialog"
@@ -64,20 +64,30 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
   const [searchQuery, setSearchQuery] = useState<string>("")
   const { toast } = useToast()
 
-  const fetchEmails = async (cursor?: string) => {
+  // 用 ref 跟踪最新值，避免闭包捕获旧值
+  const activeTabRef = useRef(activeTab)
+  const selectedDomainRef = useRef(selectedDomain)
+  const searchQueryRef = useRef(searchQuery)
+  const emailsRef = useRef(emails)
+  activeTabRef.current = activeTab
+  selectedDomainRef.current = selectedDomain
+  searchQueryRef.current = searchQuery
+  emailsRef.current = emails
+
+  const fetchEmails = useCallback(async (cursor?: string) => {
     try {
       const url = new URL("/api/emails", window.location.origin)
       if (cursor) url.searchParams.set('cursor', cursor)
-      if (activeTab !== 'all') url.searchParams.set('type', activeTab)
-      if (selectedDomain && selectedDomain !== 'all') url.searchParams.set('domain', selectedDomain)
-      if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim())
+      if (activeTabRef.current !== 'all') url.searchParams.set('type', activeTabRef.current)
+      if (selectedDomainRef.current && selectedDomainRef.current !== 'all') url.searchParams.set('domain', selectedDomainRef.current)
+      if (searchQueryRef.current.trim()) url.searchParams.set('search', searchQueryRef.current.trim())
 
       const response = await fetch(url)
       const data = await response.json() as EmailResponse
 
       if (!cursor) {
         const newEmails = data.emails
-        const oldEmails = emails
+        const oldEmails = emailsRef.current
 
         const lastDuplicateIndex = newEmails.findIndex(
           newEmail => oldEmails.some(oldEmail => oldEmail.id === newEmail.id)
@@ -104,7 +114,7 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
       setRefreshing(false)
       setLoadingMore(false)
     }
-  }
+  }, [])
 
   const handleRefresh = async () => {
     setRefreshing(true)

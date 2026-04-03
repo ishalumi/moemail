@@ -23,7 +23,6 @@ export function WebsiteConfigPanel() {
   const t = useTranslations("profile.website")
   const tCard = useTranslations("profile.card")
   const [defaultRole, setDefaultRole] = useState<string>("")
-  const [emailDomains, setEmailDomains] = useState<string>("")
   const [adminContact, setAdminContact] = useState<string>("")
   const [maxEmails, setMaxEmails] = useState<string>(EMAIL_CONFIG.MAX_ACTIVE_EMAILS.toString())
   const [turnstileEnabled, setTurnstileEnabled] = useState(false)
@@ -41,9 +40,8 @@ export function WebsiteConfigPanel() {
   const fetchConfig = async () => {
     const res = await fetch("/api/config")
     if (res.ok) {
-      const data = await res.json() as { 
+      const data = await res.json() as {
         defaultRole: Exclude<Role, typeof ROLES.EMPEROR>,
-        emailDomains: string,
         adminContact: string,
         maxEmails: string,
         turnstile?: {
@@ -53,7 +51,6 @@ export function WebsiteConfigPanel() {
         }
       }
       setDefaultRole(data.defaultRole)
-      setEmailDomains(data.emailDomains)
       setAdminContact(data.adminContact)
       setMaxEmails(data.maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS.toString())
       setTurnstileEnabled(Boolean(data.turnstile?.enabled))
@@ -68,9 +65,8 @@ export function WebsiteConfigPanel() {
       const res = await fetch("/api/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          defaultRole, 
-          emailDomains,
+        body: JSON.stringify({
+          defaultRole,
           adminContact,
           maxEmails: maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS.toString(),
           turnstile: {
@@ -118,17 +114,6 @@ export function WebsiteConfigPanel() {
               <SelectItem value={ROLES.CIVILIAN}>{tCard("roles.CIVILIAN")}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="text-sm">{t("emailDomains")}:</span>
-          <div className="flex-1">
-            <Input 
-              value={emailDomains}
-              onChange={(e) => setEmailDomains(e.target.value)}
-              placeholder={t("emailDomainsPlaceholder")}
-            />
-          </div>
         </div>
 
         <div className="flex items-center gap-4">
