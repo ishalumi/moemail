@@ -105,25 +105,34 @@ export async function setupSubdomainDns(zoneId: string, subdomain: string) {
   ]
 
   for (const mx of mxServers) {
+    try {
+      await cfFetch(`/zones/${zoneId}/dns_records`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "MX",
+          name: subdomain,
+          content: mx.content,
+          priority: mx.priority,
+          ttl: 1,
+        }),
+      })
+    } catch (e) {
+      // 忽略"记录已存在"错误（81058）
+      if (!(e instanceof Error && e.message.includes("81058"))) throw e
+    }
+  }
+
+  try {
     await cfFetch(`/zones/${zoneId}/dns_records`, {
       method: "POST",
       body: JSON.stringify({
-        type: "MX",
+        type: "TXT",
         name: subdomain,
-        content: mx.content,
-        priority: mx.priority,
+        content: "v=spf1 include:_spf.mx.cloudflare.net ~all",
         ttl: 1,
       }),
     })
+  } catch (e) {
+    if (!(e instanceof Error && e.message.includes("81058"))) throw e
   }
-
-  await cfFetch(`/zones/${zoneId}/dns_records`, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "TXT",
-      name: subdomain,
-      content: "v=spf1 include:_spf.mx.cloudflare.net ~all",
-      ttl: 1,
-    }),
-  })
 }
