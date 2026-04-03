@@ -223,24 +223,34 @@ pnpm dlx tsx ./scripts/deploy/index.ts
 - **自动配置**：添加域名时自动解析 CF Zone ID、创建 DNS 记录、启用 Email Routing、配置 catch-all 规则
 - **删除清理**：删除子域时自动清理 CF 上的 MX/TXT DNS 记录
 
-### Cloudflare 邮件路由配置
+### CF API Token 权限要求
 
-为了使邮箱域名生效，还需要在 Cloudflare 控制台配置邮件路由，将收到的邮件转发给 Email Worker 处理。
+域名管理的自动配置功能需要 Cloudflare API Token 具备以下权限（区域资源选择 **所有区域**）：
+
+| 范围 | 权限 | 操作 |
+|------|------|------|
+| 区域 | 电子邮件路由规则 | 编辑 |
+| 区域 | 区域设置 | 编辑 |
+| 区域 | 区域 | 读取 |
+| 区域 | DNS | 编辑 |
+
+Token 可在网站设置的 **Cloudflare API** 区域中配置，或通过部署脚本自动注入。
+
+### Cloudflare 邮件路由手动配置（兜底）
+
+> 正常情况下，添加域名时会**自动完成**以下所有配置。仅当自动配置失败（域名管理显示 CF 配置错误）时，才需要手动操作。
 
 1. 登录 [Cloudflare 控制台](https://dash.cloudflare.com/)
 2. 选择您的域名
-3. 点击左侧菜单的 "电子邮件" -> "电子邮件路由"
-4. 如果显示 “电子邮件路由当前被禁用，没有在路由电子邮件”，请点击 "启用电子邮件路由"
-![启用电子邮件路由](https://pic.otaku.ren/20241223/AQADNcQxG_K0SVd-.jpg "启用电子邮件路由")
+3. 点击左侧菜单的 “电子邮件” -> “电子邮件路由”
+4. 如果显示 “电子邮件路由当前被禁用，没有在路由电子邮件”，请点击 “启用电子邮件路由”
 5. 点击后，会提示你添加电子邮件路由 DNS 记录，点击 “添加记录并启用” 即可
-![添加电子邮件路由 DNS 记录](https://pic.otaku.ren/20241223/AQADN8QxG_K0SVd-.jpg "添加电子邮件路由 DNS 记录")
 6. 配置路由规则：
-   - Catch-all 地址: 启用 "Catch-all"
+   - Catch-all 地址: 启用 “Catch-all”
    - 编辑 Catch-all 地址
-    - 操作: 选择 "发送到 Worker"
-    - 目标位置: 选择刚刚部署的 "email-receiver-worker"
+    - 操作: 选择 “发送到 Worker”
+    - 目标位置: 选择已部署的 “email-receiver-worker”
     - 保存
-  ![配置路由规则](https://pic.otaku.ren/20241223/AQADNsQxG_K0SVd-.jpg "配置路由规则")
 
 ### 注意事项
 - 确保域名的 DNS 托管在 Cloudflare
@@ -309,7 +319,7 @@ pnpm dlx tsx ./scripts/deploy/index.ts
 - `DEFAULT_ROLE`: 新注册用户默认角色，可选值为 `CIVILIAN`、`KNIGHT`、`DUKE`
 - `ADMIN_CONTACT`: 管理员联系方式
 - `MAX_EMAILS`: 每个用户可创建的最大邮箱数量
-- `CF_API_TOKEN`: Cloudflare API Token（用于域名 Email Routing 自动配置）
+- `CF_API_TOKEN`: Cloudflare API Token（用于域名 Email Routing 自动配置，[权限要求见上方](#cf-api-token-权限要求)）
 - `CF_ACCOUNT_ID`: Cloudflare Account ID
 
 > 注意：邮箱域名已从 KV 迁移到 D1 数据库的 `domains` 表，通过域名管理 API (`/api/domains`) 进行管理。
