@@ -3,7 +3,6 @@ import { domains } from "@/lib/schema"
 import { eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
 import { getZoneIdByName, setupSubdomainDns, createCatchAllRule } from "@/lib/cloudflare-email"
-import { getRequestContext } from "@cloudflare/next-on-pages"
 
 export const runtime = "edge"
 
